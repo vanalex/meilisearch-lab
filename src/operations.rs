@@ -90,3 +90,21 @@ pub async fn perform_search_with_filter(index: &Index, query: &str, filter: &str
     
     Ok(search_result.hits)
 }
+
+/// Perform multiple searches and return the results
+/// Each tuple in the queries vector contains a query string and an optional filter string
+pub async fn perform_multisearch(index: &Index, queries: Vec<(String, Option<String>)>) -> Result<Vec<Vec<SearchResult<Movie>>>, MeilisearchError> {
+    let mut results = Vec::new();
+    
+    // Execute each search query
+    for (query, filter_opt) in queries {
+        let result = match filter_opt {
+            Some(filter) => perform_search_with_filter(index, &query, &filter).await?,
+            None => perform_basic_search(index, &query).await?,
+        };
+        
+        results.push(result);
+    }
+    
+    Ok(results)
+}
